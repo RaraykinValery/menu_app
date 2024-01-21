@@ -1,0 +1,5 @@
+POSTGRES_USER = "dbuser"
+POSTGRES_PASSWORD = "pass"
+POSTGRES_DB = "menu_db"
+POSTGRES_HOST = "database"
+POSTGRES_PORT = "5432"
