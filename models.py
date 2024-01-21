@@ -1,18 +1,21 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Float, Text
+import uuid
+
+from sqlalchemy import Column, ForeignKey, String, Float, Text, Uuid
 from sqlalchemy.orm import relationship
 
-from .database import Base
+from database import Base
 
 
 class Dish(Base):
     __tablename__ = "dishes"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Uuid, primary_key=True, unique=True,
+                default=uuid.uuid4)
     title = Column(String, unique=True)
     description = Column(Text)
     price = Column(Float)
 
-    submenu_id = Column(Integer, ForeignKey("submenus.id"))
+    submenu_id = Column(Uuid, ForeignKey("submenus.id"))
 
     submenu = relationship("Submenu", back_populates="dishes")
 
@@ -20,11 +23,12 @@ class Dish(Base):
 class Submenu(Base):
     __tablename__ = "submenus"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Uuid, primary_key=True, unique=True,
+                default=uuid.uuid4)
     title = Column(String, unique=True)
     description = Column(Text)
 
-    menu_id = Column(Integer, ForeignKey("menus.id"))
+    menu_id = Column(Uuid, ForeignKey("menus.id"))
 
     menu = relationship("Menu", back_populates="submenus")
     dishes = relationship("Dish", back_populates="submenu",
@@ -34,8 +38,9 @@ class Submenu(Base):
 class Menu(Base):
     __tablename__ = "menus"
 
-    id = Column(Integer, primary_key=True)
-    title = Column(String, unique=True)
+    id = Column(Uuid, primary_key=True, unique=True,
+                default=uuid.uuid4)
+    title = Column(String)
     description = Column(Text)
 
     submenus = relationship(
