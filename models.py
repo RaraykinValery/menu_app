@@ -1,7 +1,8 @@
 import uuid
 
-from sqlalchemy import Column, ForeignKey, String, Float, Text, Uuid
+from sqlalchemy import Column, ForeignKey, String, Text, Uuid
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from database import Base
 
@@ -13,7 +14,7 @@ class Dish(Base):
                 default=uuid.uuid4)
     title = Column(String, unique=True)
     description = Column(Text)
-    price = Column(Float)
+    price = Column(String)
 
     submenu_id = Column(Uuid, ForeignKey("submenus.id"))
 
@@ -34,14 +35,26 @@ class Submenu(Base):
     dishes = relationship("Dish", back_populates="submenu",
                           cascade="all, delete-orphan")
 
+    @hybrid_property
+    def dishes_count(self):
+        return len(self.dishes)
+
 
 class Menu(Base):
     __tablename__ = "menus"
 
     id = Column(Uuid, primary_key=True, unique=True,
                 default=uuid.uuid4)
-    title = Column(String)
+    title = Column(String, unique=True)
     description = Column(Text)
 
     submenus = relationship(
         "Submenu", back_populates="menu", cascade="all, delete-orphan")
+
+    @hybrid_property
+    def submenus_count(self):
+        return len(self.submenus)
+
+    @hybrid_property
+    def dishes_count(self):
+        return sum(len(submenu.dishes) for submenu in self.submenus)
