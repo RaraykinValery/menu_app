@@ -68,10 +68,9 @@ def read_submenus(menu_id: UUID, db: Session = Depends(get_db),):
 
 @app.get("/api/v1/menus/{menu_id}/submenus/{submenu_id}",
          response_model=schemas.Submenu)
-def read_submenu(menu_id: UUID,
-                 submenu_id: UUID,
+def read_submenu(submenu_id: UUID,
                  db: Session = Depends(get_db)):
-    db_submenu = crud.get_submenu(db, menu_id, submenu_id)
+    db_submenu = crud.get_submenu(db, submenu_id)
     if db_submenu is None:
         raise HTTPException(status_code=404, detail="submenu not found")
     return db_submenu
@@ -88,19 +87,17 @@ def create_submenu(menu_id: UUID,
 
 @app.delete("/api/v1/menus/{menu_id}/submenus/{submenu_id}",
             response_model=schemas.Submenu)
-def delete_submenu(menu_id: UUID,
-                   submenu_id: UUID,
+def delete_submenu(submenu_id: UUID,
                    db: Session = Depends(get_db)):
-    return crud.delete_submenu(db, menu_id, submenu_id)
+    return crud.delete_submenu(db, submenu_id)
 
 
 @app.patch("/api/v1/menus/{menu_id}/submenus/{submenu_id}",
            response_model=schemas.Submenu)
-def update_submenu(menu_id: UUID,
-                   submenu_id: UUID,
+def update_submenu(submenu_id: UUID,
                    submenu: schemas.SubmenuUpdate,
                    db: Session = Depends(get_db)):
-    return crud.update_submenu(db, menu_id, submenu_id, submenu)
+    return crud.update_submenu(db, submenu_id, submenu)
 
 
 # Dish routs
@@ -108,19 +105,16 @@ def update_submenu(menu_id: UUID,
 
 @app.get("/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes",
          response_model=list[schemas.Dish])
-def read_dishes(menu_id: UUID,
-                submenu_id: UUID,
+def read_dishes(submenu_id: UUID,
                 db: Session = Depends(get_db)):
-    return crud.get_dishes(db, menu_id, submenu_id)
+    return crud.get_dishes(db, submenu_id)
 
 
 @app.get("/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}",
          response_model=schemas.Dish)
-def read_dish(menu_id: UUID,
-              submenu_id: UUID,
-              dish_id: UUID,
+def read_dish(dish_id: UUID,
               db: Session = Depends(get_db)):
-    db_dish = crud.get_dish(db, menu_id, submenu_id, dish_id)
+    db_dish = crud.get_dish(db, dish_id)
     if db_dish is None:
         raise HTTPException(status_code=404, detail="dish not found")
     return db_dish
@@ -129,27 +123,22 @@ def read_dish(menu_id: UUID,
 @app.post("/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes",
           response_model=schemas.Dish,
           status_code=status.HTTP_201_CREATED)
-def create_dish(menu_id: UUID,
-                submenu_id: UUID,
+def create_dish(submenu_id: UUID,
                 dish: schemas.DishCreate,
                 db: Session = Depends(get_db)):
-    return crud.create_dish(db, menu_id, submenu_id, dish)
+    return crud.create_dish(db, submenu_id, dish)
 
 
 @app.delete("/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}",
             response_model=schemas.Dish)
-def delete_dish(menu_id: UUID,
-                submenu_id: UUID,
-                dish_id: UUID,
+def delete_dish(dish_id: UUID,
                 db: Session = Depends(get_db)):
-    return crud.delete_dish(db, menu_id, submenu_id, dish_id)
+    return crud.delete_dish(db, dish_id)
 
 
 @app.patch("/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}",
            response_model=schemas.Dish)
-def update_dish(menu_id: UUID,
-                submenu_id: UUID,
-                dish_id: UUID,
+def update_dish(dish_id: UUID,
                 dish: schemas.DishUpdate,
                 db: Session = Depends(get_db)):
-    return crud.update_dish(db, menu_id, submenu_id, dish_id, dish)
+    return crud.update_dish(db, dish_id, dish)
