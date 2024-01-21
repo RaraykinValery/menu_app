@@ -4,7 +4,7 @@ from pydantic import UUID4, BaseModel
 class DishBase(BaseModel):
     title: str
     description: str
-    price: float
+    price: str
 
 
 class DishCreate(DishBase):
@@ -42,14 +42,10 @@ class SubmenuUpdate(BaseModel):
 class Submenu(SubmenuBase):
     id: UUID4
     menu_id: UUID4
-    dishes: list[Dish] = []
+    dishes_count: int
 
     class Config:
         from_attributes = True
-
-
-class SubmenuAsListItem(Submenu):
-    dish_count: int
 
 
 class MenuBase(BaseModel):
@@ -68,12 +64,8 @@ class MenuUpdate(BaseModel):
 
 class Menu(MenuBase):
     id: UUID4
-    submenus: list[Submenu] = []
+    submenus_count: int
+    dishes_count: int
 
     class Config:
         from_attributes = True
-
-
-class MenuAsListItem(Menu):
-    submenu_count: int
-    dish_count: int
