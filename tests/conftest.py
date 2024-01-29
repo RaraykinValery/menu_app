@@ -10,16 +10,24 @@ from app.main import app
 client = TestClient(app)
 
 
-@pytest.fixture
-def session():
+def base_session():
     models.Base.metadata.create_all(bind=engine)
-
     db_session = SessionLocal()
 
     yield db_session
 
     db_session.close()
     models.Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture(scope="class")
+def class_session():
+    yield from base_session()
+
+
+@pytest.fixture()
+def session():
+    yield from base_session()
 
 
 @pytest.fixture

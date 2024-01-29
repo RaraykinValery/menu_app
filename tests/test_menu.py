@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from tests.conftest import client
+from tests.conftest import session
 from app import crud, schemas
 
 
