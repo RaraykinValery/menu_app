@@ -50,11 +50,3 @@ class Menu(Base):
 
     submenus = relationship(
         "Submenu", back_populates="menu", cascade="all, delete-orphan")
-
-    @hybrid_property
-    def submenus_count(self):
-        return len(self.submenus)
-
-    @hybrid_property
-    def dishes_count(self):
-        return sum(len(submenu.dishes) for submenu in self.submenus)

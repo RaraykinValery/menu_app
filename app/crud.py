@@ -3,15 +3,15 @@ from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+from . import models, schemas, operations
 
 
 def get_menus(db: Session):
-    return db.query(models.Menu).all()
+    return operations.get_all_menus_with_submenus_and_dishes_counts(db)
 
 
 def get_menu(db: Session, menu_id: UUID):
-    return db.get(models.Menu, menu_id)
+    return operations.get_menu_with_submenus_and_dishes_counts(db, menu_id)
 
 
 def create_menu(db: Session, menu: schemas.MenuCreate):

@@ -23,12 +23,12 @@ def get_db():
 # Menu routs
 
 
-@app.get("/api/v1/menus", response_model=list[schemas.Menu])
+@app.get("/api/v1/menus", response_model=list[schemas.MenuWithCounts])
 def read_menus(db: Session = Depends(get_db)):
     return crud.get_menus(db)
 
 
-@app.get("/api/v1/menus/{menu_id}", response_model=schemas.Menu)
+@app.get("/api/v1/menus/{menu_id}", response_model=schemas.MenuWithCounts)
 def read_menu(menu_id: UUID, db: Session = Depends(get_db)):
     db_menu = crud.get_menu(db, menu_id)
     if db_menu is None:

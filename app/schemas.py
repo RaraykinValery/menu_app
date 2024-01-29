@@ -64,5 +64,8 @@ class Menu(MenuBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID4
+
+
+class MenuWithCounts(Menu):
     submenus_count: int
     dishes_count: int

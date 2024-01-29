@@ -70,7 +70,7 @@ def test_submenus_and_dishes_count(session: Session):
     assert response.status_code == 200
     menu_read_data = response.json()
     assert menu_read_data['id'] == menu_data['id']
-    menu_with_counts = operations.get_menus_with_submenus_and_dishes_counts(
+    menu_with_counts = operations.get_menu_with_submenus_and_dishes_counts(
         session, UUID(menu_data['id']))
     assert menu_read_data['submenus_count'] == menu_with_counts.submenus_count
     assert menu_read_data['dishes_count'] == menu_with_counts.dishes_count
