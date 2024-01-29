@@ -1,4 +1,4 @@
-from pydantic import UUID4, BaseModel
+from pydantic import UUID4, BaseModel, ConfigDict
 
 
 class DishBase(BaseModel):
@@ -18,11 +18,10 @@ class DishUpdate(BaseModel):
 
 
 class Dish(DishBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID4
     submenu_id: UUID4
-
-    class Config:
-        from_attributes = True
 
 
 class SubmenuBase(BaseModel):
@@ -40,12 +39,11 @@ class SubmenuUpdate(BaseModel):
 
 
 class Submenu(SubmenuBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID4
     menu_id: UUID4
     dishes_count: int
-
-    class Config:
-        from_attributes = True
 
 
 class MenuBase(BaseModel):
@@ -63,9 +61,8 @@ class MenuUpdate(BaseModel):
 
 
 class Menu(MenuBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID4
     submenus_count: int
     dishes_count: int
-
-    class Config:
-        from_attributes = True
