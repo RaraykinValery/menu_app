@@ -7,7 +7,7 @@ services:
       context: .
     container_name: menu-app
     environment:
-      PROD_DB_URL: "postgresql://dbuser:pass@database:5432/menu_db"
+      DB_URL: "postgresql://dbuser:pass@database:5432/menu_db"
     depends_on:
       database:
         condition: service_healthy
@@ -21,11 +21,16 @@ services:
       PGUSER: dbuser
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: menu_db
+    volumes:
+      - pg_database:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
       test: "pg_isready -h database"
-      interval: 10s
+      interval: 2s
       timeout: 30s
       retries: 5
       start_period: 80s
+
+volumes:
+  pg_database:
