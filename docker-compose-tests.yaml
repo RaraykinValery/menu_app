@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+
+  menu-app-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+    container_name: menu-app-tests
+    volumes:
+      - ./:/code
+    environment:
+      DB_URL: "postgresql://test-dbuser:test-pass@test-database:5432/test-menu_db"
+    depends_on:
+      test-database:
+        condition: service_healthy
+
+  test-database:
+    image: postgres:15.1-alpine
+    container_name: test-database
+    environment:
+      POSTGRES_USER: test-dbuser
+      PGUSER: test-dbuser
+      POSTGRES_PASSWORD: test-pass
+      POSTGRES_DB: test-menu_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: "pg_isready -h test-database"
+      interval: 3s
+      timeout: 30s
+      retries: 5
+      start_period: 80s
