@@ -3,9 +3,9 @@ import pytest
 from sqlalchemy.orm import Session
 from fastapi.testclient import TestClient
 
-from .. import models, schemas, crud
-from ..database import SessionLocal, engine
-from ..main import app
+from app import models, schemas, crud
+from app.database import SessionLocal, engine
+from app.main import app
 
 client = TestClient(app)
 

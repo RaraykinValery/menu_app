@@ -2,8 +2,8 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from .conftest import client
-from .. import operations
+from tests.conftest import client
+from app import operations
 
 
 def test_submenus_and_dishes_count(session: Session):

@@ -2,8 +2,8 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from .conftest import client
-from .. import crud, schemas
+from tests.conftest import client
+from app import crud, schemas
 
 
 class TestSubmenuRouts:
