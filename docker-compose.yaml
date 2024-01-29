@@ -6,6 +6,8 @@ services:
     build:
       context: .
     container_name: menu-app
+    volumes:
+      - ./:/code
     environment:
       DB_URL: "postgresql://dbuser:pass@database:5432/menu_db"
     depends_on:
