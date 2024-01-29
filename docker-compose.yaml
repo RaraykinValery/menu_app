@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
 
   menu-app:
@@ -5,15 +7,23 @@ services:
       context: .
     container_name: menu-app
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     ports:
       - "8000:8000"
 
   database:
-    image: postgres:15.2
+    image: postgres:15.1-alpine
     environment:
-      - POSTGRES_USER=dbuser
-      - POSTGRES_PASSWORD=pass
-      - POSTGRES_DB=menu_db
+      POSTGRES_USER: dbuser
+      PGUSER: dbuser
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: menu_db
     ports:
       - "5432:5432"
+    healthcheck:
+      test: "pg_isready -h database"
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 80s
