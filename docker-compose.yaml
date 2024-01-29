@@ -6,6 +6,8 @@ services:
     build:
       context: .
     container_name: menu-app
+    environment:
+      PROD_DB_URL: "postgresql://dbuser:pass@database:5432/menu_db"
     depends_on:
       database:
         condition: service_healthy
