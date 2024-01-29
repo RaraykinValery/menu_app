@@ -3,7 +3,7 @@ from uuid import UUID
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-import models
+from . import models
 
 
 def get_menus_with_submenus_and_dishes_counts(session: Session, menu_id: UUID):

@@ -4,7 +4,7 @@ from sqlalchemy import Column, ForeignKey, String, Text, Uuid
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from database import Base
+from .database import Base
 
 
 class Dish(Base):
