@@ -1,5 +1,7 @@
 # REST API по работе с меню ресторана
 
+## Запуск приложения
+
 Для запуска проекта необходимо выполнить следующие шаги:
 
 1. Убедитесь, что у вас установлен Docker и Docker Compose.
@@ -31,3 +33,22 @@ docker-compose up -d
 ```bash
 docker-compose down
 ```
+
+## Запуск тестов
+
+Чтобы запустить тесты нужно сделать файл run_tests.sh исполняемым:
+
+```bash
+sudo chmod +x run_tests.sh
+```
+
+И запустить его:
+
+```bash
+./run_tests.sh
+```
+
+## ORM запрос
+
+ORM запрос для вывода количества подменю и блюд для Меню из пункта 3 находится по пути:
+`menu_app/app/operations.py` в функции get_menus_with_submenus_and_dishes_counts.
