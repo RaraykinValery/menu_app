@@ -1,9 +1,8 @@
 import pytest
-
-from sqlalchemy.orm import Session
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
-from app import models, schemas, crud
+from app import crud, models, schemas
 from app.database import SessionLocal, engine
 from app.main import app
 
@@ -20,7 +19,7 @@ def base_session():
     models.Base.metadata.drop_all(bind=engine)
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope='class')
 def class_session():
     yield from base_session()
 
@@ -33,8 +32,8 @@ def session():
 @pytest.fixture
 def menu(session: Session):
     menu_data = {
-        "title": "Menu 1",
-        "description": "Menu 1 description"
+        'title': 'Menu 1',
+        'description': 'Menu 1 description'
     }
 
     db_menu = crud.create_menu(
@@ -49,8 +48,8 @@ def menu(session: Session):
 @pytest.fixture
 def submenu(session: Session, menu):
     submenu_data = {
-        "title": "Submenu 1",
-        "description": "Submenu 1 description"
+        'title': 'Submenu 1',
+        'description': 'Submenu 1 description'
     }
 
     db_submenu = crud.create_submenu(
@@ -66,9 +65,9 @@ def submenu(session: Session, menu):
 @pytest.fixture
 def dish(session: Session, menu, submenu):
     dish_data = {
-        "title": "Dish 1",
-        "description": "Dish 1 description",
-        "price": "12.50"
+        'title': 'Dish 1',
+        'description': 'Dish 1 description',
+        'price': '12.50'
     }
 
     db_dish = crud.create_dish(

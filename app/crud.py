@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from . import models, schemas, operations
+from . import models, operations, schemas
 
 
 def get_menus(db: Session):
@@ -25,7 +25,7 @@ def create_menu(db: Session, menu: schemas.MenuCreate):
 def delete_menu(db: Session, menu_id: UUID):
     db_menu = get_menu(db, menu_id)
     if not db_menu:
-        raise HTTPException(status_code=404, detail="menu not found")
+        raise HTTPException(status_code=404, detail='menu not found')
     db.delete(db_menu)
     db.commit()
     return db_menu
@@ -34,7 +34,7 @@ def delete_menu(db: Session, menu_id: UUID):
 def update_menu(db: Session, menu_id: UUID, menu: schemas.MenuUpdate):
     db_menu = get_menu(db, menu_id)
     if not db_menu:
-        raise HTTPException(status_code=404, detail="menu not found")
+        raise HTTPException(status_code=404, detail='menu not found')
     menu_data = menu.model_dump(exclude_unset=True)
     for key, value in menu_data.items():
         setattr(db_menu, key, value)
@@ -59,7 +59,7 @@ def get_submenu(db: Session, submenu_id: UUID):
 def create_submenu(db: Session, menu_id: UUID, submenu: schemas.SubmenuCreate):
     db_menu = get_menu(db, menu_id)
     if not db_menu:
-        raise HTTPException(status_code=404, detail="menu not found")
+        raise HTTPException(status_code=404, detail='menu not found')
     db_submenu = models.Submenu(**submenu.model_dump())
     db_menu.submenus.append(db_submenu)
     db.commit()
@@ -69,7 +69,7 @@ def create_submenu(db: Session, menu_id: UUID, submenu: schemas.SubmenuCreate):
 def delete_submenu(db: Session, submenu_id: UUID):
     db_submenu = get_submenu(db, submenu_id)
     if not db_submenu:
-        raise HTTPException(status_code=404, detail="submenu not found")
+        raise HTTPException(status_code=404, detail='submenu not found')
     db.delete(db_submenu)
     db.commit()
     return db_submenu
@@ -80,7 +80,7 @@ def update_submenu(db: Session,
                    submenu: schemas.SubmenuUpdate):
     db_submenu = get_submenu(db, submenu_id)
     if not db_submenu:
-        raise HTTPException(status_code=404, detail="submenu not found")
+        raise HTTPException(status_code=404, detail='submenu not found')
     submenu_data = submenu.model_dump(exclude_unset=True)
     for key, value in submenu_data.items():
         setattr(db_submenu, key, value)
@@ -108,7 +108,7 @@ def create_dish(db: Session,
                 dish: schemas.DishCreate):
     db_submenu = get_submenu(db, submenu_id)
     if not db_submenu:
-        raise HTTPException(status_code=404, detail="submenu not found")
+        raise HTTPException(status_code=404, detail='submenu not found')
     db_dish = models.Dish(**dish.model_dump())
     db_submenu.dishes.append(db_dish)
     db.add(db_dish)
@@ -120,7 +120,7 @@ def create_dish(db: Session,
 def delete_dish(db: Session, dish_id: UUID):
     db_dish = get_dish(db, dish_id)
     if not db_dish:
-        raise HTTPException(status_code=404, detail="dish not found")
+        raise HTTPException(status_code=404, detail='dish not found')
     db.delete(db_dish)
     db.commit()
     return db_dish
@@ -131,7 +131,7 @@ def update_dish(db: Session,
                 dish: schemas.DishUpdate):
     db_dish = get_dish(db, dish_id)
     if not db_dish:
-        raise HTTPException(status_code=404, detail="dish not found")
+        raise HTTPException(status_code=404, detail='dish not found')
     dish_data = dish.model_dump(exclude_unset=True)
     for key, value in dish_data.items():
         setattr(db_dish, key, value)
