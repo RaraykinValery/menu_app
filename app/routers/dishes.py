@@ -28,11 +28,12 @@ def read_dishes(
     status_code=status.HTTP_201_CREATED
 )
 def create_dish(
+        menu_id: UUID,
         submenu_id: UUID,
         dish: schemas.DishCreate,
         service: services.DishService = Depends(services.DishService)
 ) -> Any:
-    return service.create(submenu_id, dish)
+    return service.create(menu_id, submenu_id, dish)
 
 
 @router.get(
@@ -40,10 +41,12 @@ def create_dish(
     response_model=schemas.Dish
 )
 def read_dish(
+        menu_id: UUID,
+        submenu_id: UUID,
         dish_id: UUID,
         service: services.DishService = Depends(services.DishService)
 ) -> Any:
-    db_dish = service.get(dish_id)
+    db_dish = service.get(menu_id, submenu_id, dish_id)
     if db_dish is None:
         raise HTTPException(status_code=404, detail='dish not found')
     return db_dish
@@ -54,10 +57,12 @@ def read_dish(
     response_model=schemas.Dish
 )
 def delete_dish(
+        menu_id: UUID,
+        submenu_id: UUID,
         dish_id: UUID,
         service: services.DishService = Depends(services.DishService)
 ) -> Any:
-    return service.delete(dish_id)
+    return service.delete(menu_id, submenu_id, dish_id)
 
 
 @router.patch(
@@ -65,8 +70,10 @@ def delete_dish(
     response_model=schemas.Dish
 )
 def update_dish(
+        menu_id: UUID,
+        submenu_id: UUID,
         dish_id: UUID,
         dish: schemas.DishUpdate,
         service: services.DishService = Depends(services.DishService)
 ) -> Any:
-    return service.update(dish_id, dish)
+    return service.update(menu_id, submenu_id, dish_id, dish)

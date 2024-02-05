@@ -10,6 +10,8 @@ services:
       - ./:/code
     environment:
       DB_URL: "postgresql://dbuser:pass@database:5432/menu_db"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
     depends_on:
       database:
         condition: service_healthy
@@ -33,6 +35,13 @@ services:
       timeout: 30s
       retries: 5
       start_period: 80s
+
+  redis:
+    image: redis:7.2.4
+    restart: on-failure
+    ports:
+      - "6379:6379"
+    command: redis-server
 
 volumes:
   pg_database:

@@ -40,10 +40,11 @@ def create_submenu(
     response_model=schemas.Submenu
 )
 def read_submenu(
+        menu_id: UUID,
         submenu_id: UUID,
         service: services.SubmenuService = Depends(services.SubmenuService)
 ) -> Any:
-    db_submenu = service.get(submenu_id)
+    db_submenu = service.get(menu_id, submenu_id)
     if db_submenu is None:
         raise HTTPException(status_code=404, detail='submenu not found')
     return db_submenu
@@ -54,10 +55,11 @@ def read_submenu(
     response_model=schemas.Submenu
 )
 def delete_submenu(
+        menu_id: UUID,
         submenu_id: UUID,
         service: services.SubmenuService = Depends(services.SubmenuService)
 ) -> Any:
-    return service.delete(submenu_id)
+    return service.delete(menu_id, submenu_id)
 
 
 @router.patch(
@@ -65,8 +67,9 @@ def delete_submenu(
     response_model=schemas.Submenu
 )
 def update_submenu(
+        menu_id: UUID,
         submenu_id: UUID,
         submenu: schemas.SubmenuUpdate,
         service: services.SubmenuService = Depends(services.SubmenuService)
 ) -> Any:
-    return service.update(submenu_id, submenu)
+    return service.update(menu_id, submenu_id, submenu)
