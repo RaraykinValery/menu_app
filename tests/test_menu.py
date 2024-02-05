@@ -1,40 +1,39 @@
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from app import crud, schemas
+from app import schemas
+from app.utils import reverse
 from tests.conftest import client
 
 
 class TestMenuRouts:
-    def test_read_menus(self, session: Session, menu):
+    def test_read_menus_success(self, menu, menu_service):
         response = client.get(
-            '/api/v1/menus/',
+            reverse('read_menus')
         )
 
         assert response.status_code == 200
         data = response.json()
 
-        db_menus = crud.get_menus(session)
-        assert len(data) == len(db_menus) == 1
+        menus = menu_service.get_all()
+        assert len(data) == len(menus) == 1
 
-    def test_read_menu(self, session: Session, menu):
+    def test_read_menu_success(self, menu, menu_service):
         response = client.get(
-            f'/api/v1/menus/{menu.id}'
+            reverse('read_menu', menu_id=menu.id)
         )
         assert response.status_code == 200
         menu_data = response.json()
         assert 'id' in menu_data
 
-        db_menu = crud.get_menu(session, UUID(menu_data['id']))
-        assert db_menu is not None
+        menu = menu_service.get(UUID(menu_data['id']))
+        assert menu is not None
 
-        assert menu_data['title'] == db_menu.title
-        assert menu_data['description'] == db_menu.description
+        assert menu_data['title'] == menu.title
+        assert menu_data['description'] == menu.description
 
-    def test_create_menu(self, session: Session):
+    def test_create_menu_success(self, menu_service):
         response = client.post(
-            '/api/v1/menus/',
+            reverse('create_menu'),
             json={
                 'title': 'Menu 1',
                 'description': 'Menu 1 description'
@@ -44,15 +43,15 @@ class TestMenuRouts:
         menu_data = response.json()
         assert 'id' in menu_data
 
-        db_menu = crud.get_menu(session, UUID(menu_data['id']))
-        assert db_menu is not None
+        menu = menu_service.get(UUID(menu_data['id']))
+        assert menu is not None
 
-        assert menu_data['title'] == db_menu.title == 'Menu 1'
-        assert menu_data['description'] == db_menu.description == 'Menu 1 description'
+        assert menu_data['title'] == menu.title == 'Menu 1'
+        assert menu_data['description'] == menu.description == 'Menu 1 description'
 
-    def test_update_menu(self, session: Session, menu):
+    def test_update_menu_success(self, menu):
         response = client.patch(
-            f'/api/v1/menus/{menu.id}',
+            reverse('update_menu', menu_id=menu.id),
             json={
                 'title': 'Updated Menu 1',
                 'description': 'Updated Menu 1 description'
@@ -65,7 +64,7 @@ class TestMenuRouts:
         assert menu_data['description'] == 'Updated Menu 1 description'
 
         response = client.get(
-            f'/api/v1/menus/{menu.id}'
+            reverse('read_menu', menu_id=menu.id)
         )
         assert response.status_code == 200
         menu_data = response.json()
@@ -74,19 +73,18 @@ class TestMenuRouts:
         assert menu_data['title'] == 'Updated Menu 1'
         assert menu_data['description'] == 'Updated Menu 1 description'
 
-    def test_delete_menu(self, session: Session):
+    def test_delete_menu_success(self, menu_service):
         menu_data = {
             'title': 'Menu 1',
             'description': 'Menu 1 description'
         }
 
-        menu = crud.create_menu(
-            session,
+        menu = menu_service.create(
             schemas.MenuCreate(**menu_data)
         )
 
         response = client.delete(
-            f'/api/v1/menus/{menu.id}',
+            reverse('delete_menu', menu_id=menu.id)
         )
         assert response.status_code == 200
         menu_data = response.json()
@@ -96,6 +94,6 @@ class TestMenuRouts:
         assert menu_data['description'] == menu.description
 
         response = client.get(
-            f'/api/v1/menus/{menu.id}'
+            reverse('read_menu', menu_id=menu.id)
         )
         assert response.status_code == 404

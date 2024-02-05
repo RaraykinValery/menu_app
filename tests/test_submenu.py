@@ -1,40 +1,46 @@
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from app import crud, schemas
+from app import schemas
+from app.utils import reverse
 from tests.conftest import client
 
 
 class TestSubmenuRouts:
-    def test_read_submenus(self, session: Session, submenu):
+    def test_read_submenus_success(self, submenu, submenu_service):
         response = client.get(
-            f'/api/v1/menus/{submenu.menu.id}/submenus',
+            reverse('read_submenus', menu_id=submenu.menu.id)
         )
 
         assert response.status_code == 200
         data = response.json()
 
-        db_submenus = crud.get_submenus(session, submenu.menu.id)
-        assert len(data) == len(db_submenus) == 1
+        submenus = submenu_service.get_all(submenu.menu.id)
+        assert len(data) == len(submenus) == 1
 
-    def test_read_submenu(self, session: Session, submenu):
+    def test_read_submenu_success(self, submenu, submenu_service):
         response = client.get(
-            f'/api/v1/menus/{submenu.menu.id}/submenus/{submenu.id}'
+            reverse(
+                'read_submenu',
+                menu_id=submenu.menu.id,
+                submenu_id=submenu.id
+            )
         )
         assert response.status_code == 200
         submenu_data = response.json()
         assert 'id' in submenu_data
 
-        db_submenu = crud.get_submenu(session, UUID(submenu_data['id']))
-        assert db_submenu is not None
+        submenu = submenu_service.get(
+            UUID(submenu_data['menu_id']),
+            UUID(submenu_data['id'])
+        )
+        assert submenu is not None
 
-        assert submenu_data['title'] == db_submenu.title
-        assert submenu_data['description'] == db_submenu.description
+        assert submenu_data['title'] == submenu.title
+        assert submenu_data['description'] == submenu.description
 
-    def test_create_submenu(self, session: Session, menu):
+    def test_create_submenu_success(self, menu, submenu_service):
         response = client.post(
-            f'/api/v1/menus/{menu.id}/submenus',
+            reverse('create_submenu', menu_id=menu.id),
             json={
                 'title': 'Submenu 1',
                 'description': 'Submenu 1 description'
@@ -44,15 +50,22 @@ class TestSubmenuRouts:
         submenu_data = response.json()
         assert 'id' in submenu_data
 
-        db_submenu = crud.get_submenu(session, UUID(submenu_data['id']))
-        assert db_submenu is not None
+        submenu = submenu_service.get(
+            UUID(submenu_data['menu_id']),
+            UUID(submenu_data['id'])
+        )
+        assert submenu is not None
 
-        assert submenu_data['title'] == db_submenu.title
-        assert submenu_data['description'] == db_submenu.description
+        assert submenu_data['title'] == submenu.title
+        assert submenu_data['description'] == submenu.description
 
-    def test_update_submenu(self, session: Session, submenu):
+    def test_update_submenu_success(self, submenu):
         response = client.patch(
-            f'/api/v1/menus/{submenu.menu.id}/submenus/{submenu.id}',
+            reverse(
+                'update_submenu',
+                menu_id=submenu.menu.id,
+                submenu_id=submenu.id
+            ),
             json={
                 'title': 'Updated Submenu 1',
                 'description': 'Updated Submenu 1 description'
@@ -65,7 +78,11 @@ class TestSubmenuRouts:
         assert submenu_data['description'] == 'Updated Submenu 1 description'
 
         response = client.get(
-            f'/api/v1/menus/{submenu.menu.id}/submenus/{submenu.id}',
+            reverse(
+                'read_submenu',
+                menu_id=submenu.menu.id,
+                submenu_id=submenu.id
+            ),
         )
         assert response.status_code == 200
         submenu_data = response.json()
@@ -73,20 +90,23 @@ class TestSubmenuRouts:
         assert submenu_data['title'] == 'Updated Submenu 1'
         assert submenu_data['description'] == 'Updated Submenu 1 description'
 
-    def test_delete_submenu(self, session: Session, menu):
+    def test_delete_submenu_success(self, menu, submenu_service):
         submenu_data = {
             'title': 'Submenu 1',
             'description': 'Submenu 1 description'
         }
 
-        submenu = crud.create_submenu(
-            session,
+        submenu = submenu_service.create(
             menu.id,
             schemas.SubmenuCreate(**submenu_data)
         )
 
         response = client.delete(
-            f'/api/v1/menus/{submenu.menu.id}/submenus/{submenu.id}',
+            reverse(
+                'delete_submenu',
+                menu_id=submenu.menu.id,
+                submenu_id=submenu.id
+            ),
         )
         assert response.status_code == 200
         submenu_data = response.json()
@@ -96,6 +116,10 @@ class TestSubmenuRouts:
         assert submenu_data['description'] == submenu.description
 
         response = client.get(
-            f'/api/v1/menus/{submenu.menu.id}/submenus/{submenu.id}',
+            reverse(
+                'read_submenu',
+                menu_id=submenu.menu.id,
+                submenu_id=submenu.id
+            ),
         )
         assert response.status_code == 404

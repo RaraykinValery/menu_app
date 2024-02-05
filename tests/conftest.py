@@ -1,9 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 
-from app import crud, models, schemas
+from app import cache, models, repositories, schemas, services
 from app.database import SessionLocal, engine
+from app.dependencies import get_cache_conn
 from app.main import app
 
 client = TestClient(app)
@@ -29,52 +29,103 @@ def session():
     yield from base_session()
 
 
+@pytest.fixture()
+def cache_conn():
+    cache_conn = get_cache_conn()
+
+    yield cache_conn
+
+    cache_conn.close
+
+
+@pytest.fixture()
+def menu_repository(session):
+    return repositories.MenuRepository(session)
+
+
+@pytest.fixture()
+def menu_cache(cache_conn):
+    return cache.MenuCache(cache_conn)
+
+
+@pytest.fixture()
+def menu_service(menu_cache, menu_repository):
+    return services.MenuService(menu_cache, menu_repository)
+
+
+@pytest.fixture()
+def submenu_repository(session):
+    return repositories.SubmenuRepository(session)
+
+
+@pytest.fixture()
+def submenu_cache(cache_conn):
+    return cache.SubmenuCache(cache_conn)
+
+
+@pytest.fixture()
+def submenu_service(submenu_cache, submenu_repository):
+    return services.SubmenuService(submenu_cache, submenu_repository)
+
+
+@pytest.fixture()
+def dish_repository(session):
+    return repositories.DishRepository(session)
+
+
+@pytest.fixture()
+def dish_cache(cache_conn):
+    return cache.DishCache(cache_conn)
+
+
+@pytest.fixture()
+def dish_service(dish_cache, dish_repository):
+    return services.DishService(dish_cache, dish_repository)
+
+
 @pytest.fixture
-def menu(session: Session):
+def menu(menu_repository):
     menu_data = {
         'title': 'Menu 1',
         'description': 'Menu 1 description'
     }
 
-    db_menu = crud.create_menu(
-        session,
+    db_menu = menu_repository.save(
         schemas.MenuCreate(**menu_data)
     )
     yield db_menu
 
-    crud.delete_menu(session, db_menu.id)
+    menu_repository.delete(db_menu.id)
 
 
 @pytest.fixture
-def submenu(session: Session, menu):
+def submenu(menu, submenu_repository):
     submenu_data = {
         'title': 'Submenu 1',
         'description': 'Submenu 1 description'
     }
 
-    db_submenu = crud.create_submenu(
-        session,
+    db_submenu = submenu_repository.save(
         menu.id,
         schemas.SubmenuCreate(**submenu_data)
     )
     yield db_submenu
 
-    crud.delete_submenu(session, db_submenu.id)
+    submenu_repository.delete(db_submenu.id)
 
 
 @pytest.fixture
-def dish(session: Session, menu, submenu):
+def dish(submenu, dish_repository):
     dish_data = {
         'title': 'Dish 1',
         'description': 'Dish 1 description',
         'price': '12.50'
     }
 
-    db_dish = crud.create_dish(
-        session,
+    db_dish = dish_repository.save(
         submenu.id,
         schemas.DishCreate(**dish_data)
     )
     yield db_dish
 
-    crud.delete_dish(session, db_dish.id)
+    dish_repository.delete(db_dish.id)

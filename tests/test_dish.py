@@ -1,45 +1,56 @@
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
-from app import crud, schemas
+from app import schemas
+from app.utils import reverse
 from tests.conftest import client
 
 
 class TestDishRouts:
-    def test_read_dishes(self, session, dish):
+    def test_read_dishes_success(self, dish, dish_service):
         response = client.get(
-            f'/api/v1/menus/{dish.submenu.menu.id}'
-            f'/submenus/{dish.submenu.id}/dishes',
+            reverse(
+                'read_dishes',
+                menu_id=dish.submenu.menu.id,
+                submenu_id=dish.submenu_id
+            ),
         )
 
         assert response.status_code == 200
         data = response.json()
 
-        db_dishes = crud.get_dishes(session, dish.submenu.id)
+        db_dishes = dish_service.get_all(dish.submenu_id)
         assert len(data) == len(db_dishes) == 1
 
-    def test_read_dish(self, session: Session, dish):
+    def test_read_dish_success(self, dish, dish_service):
         response = client.get(
-            f'/api/v1/menus/{dish.submenu.menu.id}'
-            f'/submenus/{dish.submenu.id}/dishes/{dish.id}'
+            reverse(
+                'read_dish',
+                menu_id=dish.submenu.menu.id,
+                submenu_id=dish.submenu_id,
+                dish_id=dish.id
+            ),
         )
         assert response.status_code == 200
         dish_data = response.json()
         assert 'id' in dish_data
 
-        db_dish = crud.get_dish(session, UUID(dish_data['id']))
+        db_dish = dish_service.get(
+            dish.submenu.menu.id,
+            dish.submenu.id,
+            dish.id,
+        )
         assert db_dish is not None
 
         assert dish_data['title'] == db_dish.title
         assert dish_data['description'] == db_dish.description
         assert dish_data['price'] == db_dish.price
 
-    def test_create_dish(self, session: Session, submenu):
+    def test_create_dish_success(self, submenu, dish_service):
         response = client.post(
-            (
-                f'/api/v1/menus/{submenu.menu.id}'
-                f'/submenus/{submenu.id}/dishes'
+            reverse(
+                'create_dish',
+                menu_id=submenu.menu.id,
+                submenu_id=submenu.id,
             ),
             json={
                 'title': 'Dish 1',
@@ -51,18 +62,24 @@ class TestDishRouts:
         dish_data = response.json()
         assert 'id' in dish_data
 
-        db_dish = crud.get_dish(session, UUID(dish_data['id']))
+        db_dish = dish_service.get(
+            submenu.menu.id,
+            submenu.id,
+            UUID(dish_data['id']),
+        )
         assert db_dish is not None
 
         assert dish_data['title'] == db_dish.title
         assert dish_data['description'] == db_dish.description
         assert dish_data['price'] == db_dish.price
 
-    def test_update_dish(self, session: Session, dish):
+    def test_update_dish_success(self, dish):
         response = client.patch(
-            (
-                f'/api/v1/menus/{dish.submenu.menu.id}'
-                f'/submenus/{dish.submenu.id}/dishes/{dish.id}'
+            reverse(
+                'update_dish',
+                menu_id=dish.submenu.menu.id,
+                submenu_id=dish.submenu_id,
+                dish_id=dish.id
             ),
             json={
                 'title': 'Updated Dish 1',
@@ -76,8 +93,12 @@ class TestDishRouts:
         assert dish_data['description'] == 'Updated Dish 1 description'
 
         response = client.get(
-            f'/api/v1/menus/{dish.submenu.menu.id}'
-            f'/submenus/{dish.submenu.id}/dishes/{dish.id}'
+            reverse(
+                'read_dish',
+                menu_id=dish.submenu.menu.id,
+                submenu_id=dish.submenu_id,
+                dish_id=dish.id
+            ),
         )
         assert response.status_code == 200
         dish_data = response.json()
@@ -85,21 +106,26 @@ class TestDishRouts:
         assert dish_data['title'] == 'Updated Dish 1'
         assert dish_data['description'] == 'Updated Dish 1 description'
 
-    def test_delete_dish(self, session: Session, menu, submenu):
+    def test_delete_dish_success(self, menu, submenu, dish_service):
         dish_data = {
             'title': 'Dish 1',
             'description': 'Dish 1 description',
             'price': '12.50'
         }
 
-        dish = crud.create_dish(
-            session,
+        dish = dish_service.create(
+            menu.id,
             submenu.id,
             schemas.DishCreate(**dish_data)
         )
 
         response = client.delete(
-            f'/api/v1/menus/{menu.id}/submenus/{submenu.id}/dishes/{dish.id}',
+            reverse(
+                'delete_dish',
+                menu_id=dish.submenu.menu.id,
+                submenu_id=dish.submenu_id,
+                dish_id=dish.id
+            ),
         )
         assert response.status_code == 200
         dish_data = response.json()
@@ -110,6 +136,11 @@ class TestDishRouts:
         assert dish_data['price'] == dish.price
 
         response = client.get(
-            f'/api/v1/menus/{menu.id}/submenus/{submenu.id}/dishes/{dish.id}',
+            reverse(
+                'read_dish',
+                menu_id=dish.submenu.menu.id,
+                submenu_id=dish.submenu_id,
+                dish_id=dish.id
+            )
         )
         assert response.status_code == 404
