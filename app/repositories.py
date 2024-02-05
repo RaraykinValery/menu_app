@@ -9,15 +9,11 @@ from app.dependencies import get_db
 from . import models, schemas
 
 
-def serialize(db_model, schema):
-    return schema.model_validate(db_model)
-
-
 class MenuRepository:
     def __init__(self, session: Session = Depends(get_db)):
         self.session = session
 
-    def get_all(self) -> list[schemas.MenuWithCounts]:
+    def get_all(self) -> list[models.Menu]:
         db_results = (
             self.session.query(
                 models.Menu,
@@ -37,18 +33,17 @@ class MenuRepository:
             .all()
         )
 
-        menus = []
+        db_menus = []
 
         for res in db_results:
             db_menu, submenus_count, dishes_count = res
             db_menu.submenus_count = submenus_count
             db_menu.dishes_count = dishes_count
-            menu = serialize(db_menu, schemas.MenuWithCounts)
-            menus.append(menu)
+            db_menus.append(db_menu)
 
-        return menus
+        return db_menus
 
-    def get(self, id: UUID) -> schemas.MenuWithCounts | None:
+    def get(self, id: UUID) -> models.Menu | None:
         db_result = (
             self.session.query(
                 models.Menu,
@@ -74,30 +69,30 @@ class MenuRepository:
             db_menu.submenus_count = submenus_count
             db_menu.dishes_count = dishes_count
 
-            return serialize(db_menu, schemas.MenuWithCounts)
+            return db_menu
 
         return None
 
-    def save(self, menu: schemas.MenuCreate) -> schemas.Menu:
+    def save(self, menu: schemas.MenuCreate) -> models.Menu:
         db_menu = models.Menu(**menu.model_dump())
         self.session.add(db_menu)
         self.session.commit()
         self.session.refresh(db_menu)
-        return serialize(db_menu, schemas.Menu)
+        return db_menu
 
-    def delete(self, id: UUID) -> schemas.Menu | None:
+    def delete(self, id: UUID) -> models.Menu | None:
         db_menu = self.__get_by_id(id)
         if not db_menu:
             return None
         self.session.delete(db_menu)
         self.session.commit()
-        return serialize(db_menu, schemas.Menu)
+        return db_menu
 
     def update(
             self,
             id: UUID,
             element: schemas.MenuUpdate
-    ) -> schemas.Menu | None:
+    ) -> models.Menu | None:
         db_menu = self.__get_by_id(id)
         if not db_menu:
             return None
@@ -107,7 +102,7 @@ class MenuRepository:
         self.session.add(db_menu)
         self.session.commit()
         self.session.refresh(db_menu)
-        return serialize(db_menu, schemas.Menu)
+        return db_menu
 
     def __get_by_id(self, id: UUID):
         return self.session.query(models.Menu).filter(
@@ -118,35 +113,59 @@ class SubmenuRepository:
     def __init__(self, session: Session = Depends(get_db)):
         self.session = session
 
-    def get_all(self, menu_id: UUID) -> list[schemas.Submenu]:
-        db_submenus = (self.session.query(models.Submenu)
-                       .filter(models.Submenu.menu_id == menu_id)
-                       .all()
-                       )
-        submenus = []
+    def get_all(self, menu_id: UUID) -> list[models.Submenu]:
+        # db_results = (
+        # self.session.query(
+        # models.Submenu,
+        # func.count(models.Dish.id).label('dish_count')
+        # )
+        # .outerjoin(models.Dish, models.Submenu.dishes)
+        # .group_by(models.Submenu.id)
+        # .filter(models.Menu.id == menu_id)
+        # .all()
+        # )
 
-        if db_submenus:
-            submenus = ([
-                serialize(db_submenu, schemas.Submenu)
-                for db_submenu
-                in db_submenus
-            ])
+        # db_submenus = []
 
-        return submenus
+        # for res in db_results:
+        # db_submenu, dishes_count = res
+        # db_submenu.dishes_count = dishes_count
+        # db_submenus.append(db_submenu)
+        # return db_submenus
+        return (self.session.query(models.Submenu)
+                .filter(models.Submenu.menu_id == menu_id)
+                .all()
+                )
 
-    def get(self, id: UUID) -> schemas.Submenu | None:
-        db_submenu = self.__get_by_id(id)
+    def get(self, submenu_id: UUID) -> models.Submenu | None:
+        # db_result = (
+        # self.session.query(
+        # models.Submenu,
+        # func.count(models.Dish.id).label('dish_count')
+        # )
+        # .outerjoin(models.Dish, models.Submenu.dishes)
+        # .group_by(models.Submenu.id)
+        # .filter(models.Submenu.id == submenu_id)
+        # .first()
+        # )
 
-        if db_submenu:
-            return serialize(db_submenu, schemas.Submenu)
+        # if db_result:
+        # db_submenu, dishes_count = db_result
+        # db_submenu.dishes_count = dishes_count
+        # return db_submenu
 
-        return None
+        # return None
+
+        return (self.session.query(models.Submenu)
+                .filter(models.Submenu.id == submenu_id)
+                .first()
+                )
 
     def save(
             self,
             menu_id: UUID,
             submenu: schemas.SubmenuCreate
-    ) -> schemas.Submenu:
+    ) -> models.Submenu:
         db_menu = (
             self.session.query(models.Menu)
             .filter(models.Menu.id == menu_id)
@@ -157,24 +176,24 @@ class SubmenuRepository:
         db_submenu = models.Submenu(**submenu.model_dump())
         db_menu.submenus.append(db_submenu)
         self.session.commit()
-        return serialize(db_submenu, schemas.Submenu)
+        return db_submenu
 
     def delete(
             self,
             id: UUID
-    ) -> schemas.Submenu | None:
+    ) -> models.Submenu | None:
         db_submenu = self.__get_by_id(id)
         if not db_submenu:
             raise HTTPException(status_code=404, detail='submenu not found')
         self.session.delete(db_submenu)
         self.session.commit()
-        return serialize(db_submenu, schemas.Submenu)
+        return db_submenu
 
     def update(
             self,
             id: UUID,
             submenu: schemas.SubmenuUpdate
-    ) -> schemas.Submenu | None:
+    ) -> models.Submenu | None:
         db_submenu = self.__get_by_id(id)
         if not db_submenu:
             raise HTTPException(status_code=404, detail='submenu not found')
@@ -184,7 +203,7 @@ class SubmenuRepository:
         self.session.add(db_submenu)
         self.session.commit()
         self.session.refresh(db_submenu)
-        return serialize(db_submenu, schemas.Submenu)
+        return db_submenu
 
     def __get_by_id(self, id: UUID):
         return (
@@ -198,37 +217,23 @@ class DishRepository:
     def __init__(self, session: Session = Depends(get_db)):
         self.session = session
 
-    def get_all(self, submenu_id: UUID) -> list[schemas.Dish]:
+    def get_all(self, submenu_id: UUID) -> list[models.Dish]:
         db_dishes = (
             self.session.query(models.Dish)
             .filter(models.Dish.submenu_id == submenu_id)
             .all()
         )
 
-        dishes = []
+        return db_dishes
 
-        if db_dishes:
-            dishes = ([
-                serialize(db_dish, schemas.Dish)
-                for db_dish
-                in db_dishes
-            ])
-
-        return dishes
-
-    def get(self, id: UUID) -> schemas.Dish | None:
-        db_dish = self.__get_by_id(id)
-
-        if db_dish:
-            return serialize(db_dish, schemas.Dish)
-
-        return None
+    def get(self, id: UUID) -> models.Dish | None:
+        return self.__get_by_id(id)
 
     def save(
             self,
             submenu_id: UUID,
             dish: schemas.DishCreate
-    ) -> schemas.Dish:
+    ) -> models.Dish:
         db_submenu = (
             self.session.query(models.Submenu)
             .filter(models.Submenu.id == submenu_id)
@@ -241,21 +246,21 @@ class DishRepository:
         self.session.add(db_dish)
         self.session.commit()
         self.session.refresh(db_dish)
-        return serialize(db_dish, schemas.Dish)
+        return db_dish
 
-    def delete(self, id: UUID) -> schemas.Dish | None:
+    def delete(self, id: UUID) -> models.Dish | None:
         db_dish = self.__get_by_id(id)
         if not db_dish:
             raise HTTPException(status_code=404, detail='dish not found')
         self.session.delete(db_dish)
         self.session.commit()
-        return serialize(db_dish, schemas.Dish)
+        return db_dish
 
     def update(
             self,
             id: UUID,
             dish: schemas.DishUpdate
-    ) -> schemas.Dish | None:
+    ) -> models.Dish | None:
         db_dish = self.__get_by_id(id)
         if not db_dish:
             raise HTTPException(status_code=404, detail='dish not found')
@@ -265,7 +270,7 @@ class DishRepository:
         self.session.add(db_dish)
         self.session.commit()
         self.session.refresh(db_dish)
-        return serialize(db_dish, schemas.Dish)
+        return db_dish
 
     def __get_by_id(self, id: UUID):
         return (

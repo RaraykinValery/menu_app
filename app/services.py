@@ -5,7 +5,7 @@ from fastapi import Depends
 from app.cache import DishCache, MenuCache, SubmenuCache
 from app.repositories import DishRepository, MenuRepository, SubmenuRepository
 
-from . import schemas
+from . import models, schemas
 
 
 class MenuService:
@@ -17,31 +17,31 @@ class MenuService:
         self.cache = cache
         self.repository = repository
 
-    def get_all(self) -> list[schemas.MenuWithCounts]:
-        menus = self.cache.get_list('menus_list')
+    def get_all(self) -> list[models.Menu]:
+        db_menus = self.cache.get_list('menus_list')
 
-        if not menus:
-            menus = self.repository.get_all()
-            if menus:
-                self.cache.save('menus_list', menus)
+        if not db_menus:
+            db_menus = self.repository.get_all()
+            if db_menus:
+                self.cache.save('menus_list', db_menus)
 
-        return menus
+        return db_menus
 
-    def get(self, menu_id: UUID) -> schemas.MenuWithCounts | None:
-        menu = self.cache.get(str(menu_id))
+    def get(self, menu_id: UUID) -> models.Menu | None:
+        db_menu = self.cache.get(str(menu_id))
 
-        if not menu:
-            menu = self.repository.get(menu_id)
-            if menu:
-                self.cache.save(str(menu_id), menu)
+        if not db_menu:
+            db_menu = self.repository.get(menu_id)
+            if db_menu:
+                self.cache.save(str(menu_id), db_menu)
 
-        return menu
+        return db_menu
 
-    def create(self, menu: schemas.MenuCreate) -> schemas.Menu:
+    def create(self, menu: schemas.MenuCreate) -> models.Menu:
         self.cache.delete('menus_list')
         return self.repository.save(menu)
 
-    def delete(self, menu_id: UUID) -> schemas.Menu | None:
+    def delete(self, menu_id: UUID) -> models.Menu | None:
         self.cache.delete_cascade(f'{menu_id}*')
         self.cache.delete('menus_list')
         return self.repository.delete(menu_id)
@@ -50,7 +50,7 @@ class MenuService:
             self,
             menu_id: UUID,
             menu: schemas.MenuUpdate
-    ) -> schemas.Menu | None:
+    ) -> models.Menu | None:
         self.cache.delete(str(menu_id))
         self.cache.delete('menus_list')
         return self.repository.update(menu_id, menu)
@@ -65,31 +65,31 @@ class SubmenuService:
         self.cache = cache
         self.repository = repository
 
-    def get_all(self, menu_id: UUID) -> list[schemas.Submenu]:
-        submenus = self.cache.get_list(f'{menu_id}_submenus')
+    def get_all(self, menu_id: UUID) -> list[models.Submenu]:
+        db_submenus = self.cache.get_list(f'{menu_id}_submenus')
 
-        if not submenus:
-            submenus = self.repository.get_all(menu_id)
-            if submenus:
-                self.cache.save(f'{menu_id}_submenus', submenus)
+        if not db_submenus:
+            db_submenus = self.repository.get_all(menu_id)
+            if db_submenus:
+                self.cache.save(f'{menu_id}_submenus', db_submenus)
 
-        return submenus
+        return db_submenus
 
-    def get(self, menu_id: UUID, submenu_id: UUID) -> schemas.Submenu | None:
-        submenu = self.cache.get(f'{menu_id}_{submenu_id}')
+    def get(self, menu_id: UUID, submenu_id: UUID) -> models.Submenu | None:
+        db_submenu = self.cache.get(f'{menu_id}_{submenu_id}')
 
-        if not submenu:
-            submenu = self.repository.get(submenu_id)
-            if submenu:
-                self.cache.save(f'{menu_id}_{submenu_id}', submenu)
+        if not db_submenu:
+            db_submenu = self.repository.get(submenu_id)
+            if db_submenu:
+                self.cache.save(f'{menu_id}_{submenu_id}', db_submenu)
 
-        return submenu
+        return db_submenu
 
     def create(
             self,
             menu_id: UUID,
             submenu: schemas.SubmenuCreate
-    ) -> schemas.Submenu:
+    ) -> models.Submenu:
         self.cache.delete(str(menu_id))
         self.cache.delete(f'{menu_id}_submenus')
         self.cache.delete('menus_list')
@@ -99,7 +99,7 @@ class SubmenuService:
             self,
             menu_id: UUID,
             submenu_id: UUID
-    ) -> schemas.Submenu | None:
+    ) -> models.Submenu | None:
         self.cache.delete_cascade(f'{menu_id}_{submenu_id}*')
         self.cache.delete(f'{menu_id}_submenus')
         self.cache.delete(str(menu_id))
@@ -110,7 +110,7 @@ class SubmenuService:
             menu_id: UUID,
             submenu_id: UUID,
             submenu: schemas.SubmenuUpdate
-    ) -> schemas.Submenu | None:
+    ) -> models.Submenu | None:
         self.cache.delete(f'{menu_id}_{submenu_id}')
         self.cache.delete(f'{menu_id}_submenus')
         self.cache.delete('menus_list')
@@ -126,32 +126,32 @@ class DishService:
         self.cache = cache
         self.repository = repository
 
-    def get_all(self, submenu_id: UUID) -> list[schemas.Dish]:
-        dishes = self.cache.get_all(f'{submenu_id}_dishes')
+    def get_all(self, submenu_id: UUID) -> list[models.Dish]:
+        db_dishes = self.cache.get_all(f'{submenu_id}_dishes')
 
-        if not dishes:
-            dishes = self.repository.get_all(submenu_id)
-            if dishes:
-                self.cache.save(f'{submenu_id}_dishes', dishes)
+        if not db_dishes:
+            db_dishes = self.repository.get_all(submenu_id)
+            if db_dishes:
+                self.cache.save(f'{submenu_id}_dishes', db_dishes)
 
-        return dishes
+        return db_dishes
 
-    def get(self, menu_id, submenu_id, dish_id: UUID,) -> schemas.Dish | None:
-        dish = self.cache.get(f'{menu_id}_{submenu_id}_{dish_id}')
+    def get(self, menu_id, submenu_id, dish_id: UUID,) -> models.Dish | None:
+        db_dish = self.cache.get(f'{menu_id}_{submenu_id}_{dish_id}')
 
-        if not dish:
-            dish = self.repository.get(dish_id)
-            if dish:
-                self.cache.save(f'{menu_id}_{submenu_id}_{dish_id}', dish)
+        if not db_dish:
+            db_dish = self.repository.get(dish_id)
+            if db_dish:
+                self.cache.save(f'{menu_id}_{submenu_id}_{dish_id}', db_dish)
 
-        return dish
+        return db_dish
 
     def create(
             self,
             menu_id: UUID,
             submenu_id: UUID,
             dish: schemas.DishCreate
-    ) -> schemas.Dish:
+    ) -> models.Dish:
         self.cache.delete(f'{menu_id}_{submenu_id}')
         self.cache.delete(f'{menu_id}')
         self.cache.delete('menus_list')
@@ -165,7 +165,7 @@ class DishService:
             menu_id: UUID,
             submenu_id: UUID,
             dish_id: UUID
-    ) -> schemas.Dish | None:
+    ) -> models.Dish | None:
         self.cache.delete(f'{menu_id}_{submenu_id}_{dish_id}')
         self.cache.delete(f'{menu_id}_{submenu_id}')
         self.cache.delete(f'{menu_id}')
@@ -181,6 +181,6 @@ class DishService:
             submenu_id: UUID,
             dish_id: UUID,
             dish: schemas.DishUpdate
-    ) -> schemas.Dish | None:
+    ) -> models.Dish | None:
         self.cache.delete(f'{menu_id}_{submenu_id}_{dish_id}')
         return self.repository.update(dish_id, dish)
