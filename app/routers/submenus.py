@@ -13,7 +13,7 @@ router = APIRouter(
 
 @router.get(
     '/',
-    response_model=list[schemas.Submenu]
+    response_model=list[schemas.SubmenuWithCounts]
 )
 def read_submenus(
         menu_id: UUID,
@@ -37,7 +37,7 @@ def create_submenu(
 
 @router.get(
     '/{submenu_id}',
-    response_model=schemas.Submenu
+    response_model=schemas.SubmenuWithCounts
 )
 def read_submenu(
         menu_id: UUID,

@@ -43,6 +43,9 @@ class Submenu(SubmenuBase):
 
     id: UUID4
     menu_id: UUID4
+
+
+class SubmenuWithCounts(Submenu):
     dishes_count: int
 
 

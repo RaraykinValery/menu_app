@@ -31,3 +31,10 @@ services:
       timeout: 30s
       retries: 5
       start_period: 80s
+
+  redis:
+    image: redis:7.2.4
+    restart: on-failure
+    ports:
+      - "6379:6379"
+    command: redis-server

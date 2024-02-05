@@ -114,52 +114,45 @@ class SubmenuRepository:
         self.session = session
 
     def get_all(self, menu_id: UUID) -> list[models.Submenu]:
-        # db_results = (
-        # self.session.query(
-        # models.Submenu,
-        # func.count(models.Dish.id).label('dish_count')
-        # )
-        # .outerjoin(models.Dish, models.Submenu.dishes)
-        # .group_by(models.Submenu.id)
-        # .filter(models.Menu.id == menu_id)
-        # .all()
-        # )
+        db_results = (
+            self.session.query(
+                models.Submenu,
+                func.count(models.Dish.id).label('dish_count')
+            )
+            .outerjoin(models.Dish, models.Submenu.dishes)
+            .outerjoin(models.Menu, models.Submenu.menu)
+            .group_by(models.Submenu.id)
+            .filter(models.Menu.id == menu_id)
+            .all()
+        )
 
-        # db_submenus = []
+        db_submenus = []
 
-        # for res in db_results:
-        # db_submenu, dishes_count = res
-        # db_submenu.dishes_count = dishes_count
-        # db_submenus.append(db_submenu)
-        # return db_submenus
-        return (self.session.query(models.Submenu)
-                .filter(models.Submenu.menu_id == menu_id)
-                .all()
-                )
+        for res in db_results:
+            db_submenu, dishes_count = res
+            db_submenu.dishes_count = dishes_count
+            db_submenus.append(db_submenu)
+
+        return db_submenus
 
     def get(self, submenu_id: UUID) -> models.Submenu | None:
-        # db_result = (
-        # self.session.query(
-        # models.Submenu,
-        # func.count(models.Dish.id).label('dish_count')
-        # )
-        # .outerjoin(models.Dish, models.Submenu.dishes)
-        # .group_by(models.Submenu.id)
-        # .filter(models.Submenu.id == submenu_id)
-        # .first()
-        # )
+        db_result = (
+            self.session.query(
+                models.Submenu,
+                func.count(models.Dish.id).label('dish_count')
+            )
+            .outerjoin(models.Dish, models.Submenu.dishes)
+            .group_by(models.Submenu.id)
+            .filter(models.Submenu.id == submenu_id)
+            .first()
+        )
 
-        # if db_result:
-        # db_submenu, dishes_count = db_result
-        # db_submenu.dishes_count = dishes_count
-        # return db_submenu
+        if db_result:
+            db_submenu, dishes_count = db_result
+            db_submenu.dishes_count = dishes_count
+            return db_submenu
 
-        # return None
-
-        return (self.session.query(models.Submenu)
-                .filter(models.Submenu.id == submenu_id)
-                .first()
-                )
+        return None
 
     def save(
             self,
