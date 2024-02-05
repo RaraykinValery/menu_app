@@ -48,14 +48,5 @@ sudo chmod +x run_tests.sh
 ./run_tests.sh
 ```
 
-## ORM запрос
-
-ORM запрос для вывода количества подменю и блюд для Меню из пункта 3 находится по пути:
-`menu_app/app/operations.py` в функции get_menus_with_submenus_and_dishes_counts.
-
-## Исправлено
-
-1. Сложный ORM запрос теперь используется для вывода количества подменю и блюд для Меню
-как для всех меню, так и для одного (`menu_app/app/crud.py`, функции `get_menus` и `get_menu`)
-
-2. Тестовый сценарий разбит на отдельные тесты, как в Postman (`menu_app/tests/test_submenus_and_dishes_count.py`)
+## reverse
+Функция reverse() из пункта 6 реализована в фале `menu_app/app/utils.py`, используется в тестах.
