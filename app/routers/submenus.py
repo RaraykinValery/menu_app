@@ -1,9 +1,9 @@
-from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app import schemas, services
+from app import models, schemas, services
+from app.custom_exceptions import EntityDoesNotExist
 
 router = APIRouter(
     prefix='/menus/{menu_id}/submenus',
@@ -18,7 +18,7 @@ router = APIRouter(
 def read_submenus(
         menu_id: UUID,
         service: services.SubmenuService = Depends(services.SubmenuService)
-) -> Any:
+) -> list[models.Submenu]:
     return service.get_all(menu_id)
 
 
@@ -31,7 +31,7 @@ def create_submenu(
         menu_id: UUID,
         submenu: schemas.SubmenuCreate,
         service: services.SubmenuService = Depends(services.SubmenuService)
-) -> Any:
+) -> models.Submenu:
     return service.create(menu_id, submenu)
 
 
@@ -43,10 +43,12 @@ def read_submenu(
         menu_id: UUID,
         submenu_id: UUID,
         service: services.SubmenuService = Depends(services.SubmenuService)
-) -> Any:
-    db_submenu = service.get(menu_id, submenu_id)
-    if db_submenu is None:
+) -> models.Submenu:
+    try:
+        db_submenu = service.get(menu_id, submenu_id)
+    except EntityDoesNotExist:
         raise HTTPException(status_code=404, detail='submenu not found')
+
     return db_submenu
 
 
@@ -58,8 +60,13 @@ def delete_submenu(
         menu_id: UUID,
         submenu_id: UUID,
         service: services.SubmenuService = Depends(services.SubmenuService)
-) -> Any:
-    return service.delete(menu_id, submenu_id)
+) -> models.Submenu:
+    try:
+        db_submenu = service.delete(menu_id, submenu_id)
+    except EntityDoesNotExist:
+        raise HTTPException(status_code=404, detail='submenu not found')
+
+    return db_submenu
 
 
 @router.patch(
@@ -71,5 +78,10 @@ def update_submenu(
         submenu_id: UUID,
         submenu: schemas.SubmenuUpdate,
         service: services.SubmenuService = Depends(services.SubmenuService)
-) -> Any:
-    return service.update(menu_id, submenu_id, submenu)
+) -> models.Submenu:
+    try:
+        db_submenu = service.update(menu_id, submenu_id, submenu)
+    except EntityDoesNotExist:
+        raise HTTPException(status_code=404, detail='submenu not found')
+
+    return db_submenu

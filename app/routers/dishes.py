@@ -1,11 +1,11 @@
-from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app import schemas, services
+from app import models, schemas, services
+from app.custom_exceptions import EntityDoesNotExist
 
-router = APIRouter(
+router: APIRouter = APIRouter(
     prefix='/menus/{menu_id}/submenus/{submenu_id}/dishes',
     tags=['dishes']
 )
@@ -18,7 +18,7 @@ router = APIRouter(
 def read_dishes(
         submenu_id: UUID,
         service: services.DishService = Depends(services.DishService)
-) -> Any:
+) -> list[models.Dish]:
     return service.get_all(submenu_id)
 
 
@@ -32,7 +32,7 @@ def create_dish(
         submenu_id: UUID,
         dish: schemas.DishCreate,
         service: services.DishService = Depends(services.DishService)
-) -> Any:
+) -> models.Dish:
     return service.create(menu_id, submenu_id, dish)
 
 
@@ -45,10 +45,12 @@ def read_dish(
         submenu_id: UUID,
         dish_id: UUID,
         service: services.DishService = Depends(services.DishService)
-) -> Any:
-    db_dish = service.get(menu_id, submenu_id, dish_id)
-    if db_dish is None:
+) -> models.Dish:
+    try:
+        db_dish = service.get(menu_id, submenu_id, dish_id)
+    except EntityDoesNotExist:
         raise HTTPException(status_code=404, detail='dish not found')
+
     return db_dish
 
 
@@ -61,8 +63,13 @@ def delete_dish(
         submenu_id: UUID,
         dish_id: UUID,
         service: services.DishService = Depends(services.DishService)
-) -> Any:
-    return service.delete(menu_id, submenu_id, dish_id)
+) -> models.Dish:
+    try:
+        db_dish = service.delete(menu_id, submenu_id, dish_id)
+    except EntityDoesNotExist:
+        raise HTTPException(status_code=404, detail='dish not found')
+
+    return db_dish
 
 
 @router.patch(
@@ -75,5 +82,11 @@ def update_dish(
         dish_id: UUID,
         dish: schemas.DishUpdate,
         service: services.DishService = Depends(services.DishService)
-) -> Any:
-    return service.update(menu_id, submenu_id, dish_id, dish)
+) -> models.Dish:
+    try:
+        db_dish = service.update(
+            menu_id, submenu_id, dish_id, dish)
+    except EntityDoesNotExist:
+        raise HTTPException(status_code=404, detail='dish not found')
+
+    return db_dish

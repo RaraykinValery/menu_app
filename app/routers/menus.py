@@ -1,9 +1,9 @@
-from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app import schemas, services
+from app import models, schemas, services
+from app.custom_exceptions import EntityDoesNotExist
 
 router = APIRouter(
     prefix='/menus',
@@ -14,7 +14,7 @@ router = APIRouter(
 @router.get('/', response_model=list[schemas.MenuWithCounts])
 def read_menus(
         service: services.MenuService = Depends(services.MenuService)
-) -> Any:
+) -> list[models.Menu]:
     return service.get_all()
 
 
@@ -24,7 +24,7 @@ def read_menus(
 def create_menu(
     menu: schemas.MenuCreate,
     service: services.MenuService = Depends(services.MenuService)
-) -> Any:
+) -> models.Menu:
     return service.create(menu)
 
 
@@ -32,10 +32,12 @@ def create_menu(
 def read_menu(
     menu_id: UUID,
     service: services.MenuService = Depends(services.MenuService)
-) -> Any:
-    db_menu = service.get(menu_id)
-    if db_menu is None:
+) -> models.Menu:
+    try:
+        db_menu = service.get(menu_id)
+    except EntityDoesNotExist:
         raise HTTPException(status_code=404, detail='menu not found')
+
     return db_menu
 
 
@@ -43,10 +45,12 @@ def read_menu(
 def delete_menu(
     menu_id: UUID,
     service: services.MenuService = Depends(services.MenuService)
-) -> Any:
-    db_menu = service.delete(menu_id)
-    if db_menu is None:
+) -> models.Menu:
+    try:
+        db_menu = service.delete(menu_id)
+    except EntityDoesNotExist:
         raise HTTPException(status_code=404, detail='menu not found')
+
     return db_menu
 
 
@@ -55,8 +59,10 @@ def update_menu(
     menu_id: UUID,
     menu: schemas.MenuUpdate,
     service: services.MenuService = Depends(services.MenuService)
-) -> Any:
-    db_menu = service.update(menu_id, menu)
-    if db_menu is None:
+) -> models.Menu:
+    try:
+        db_menu = service.update(menu_id, menu)
+    except EntityDoesNotExist:
         raise HTTPException(status_code=404, detail='menu not found')
+
     return db_menu

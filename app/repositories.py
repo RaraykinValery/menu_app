@@ -4,13 +4,14 @@ from fastapi import Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.custom_exceptions import EntityDoesNotExist
 from app.dependencies import get_db
 
 from . import models, schemas
 
 
 class MenuRepository:
-    def __init__(self, session: Session = Depends(get_db)):
+    def __init__(self, session: Session = Depends(get_db)) -> None:
         self.session = session
 
     def get_all(self) -> list[models.Menu]:
@@ -43,7 +44,7 @@ class MenuRepository:
 
         return db_menus
 
-    def get(self, id: UUID) -> models.Menu | None:
+    def get(self, id: UUID) -> models.Menu:
         db_result = (
             self.session.query(
                 models.Menu,
@@ -70,8 +71,8 @@ class MenuRepository:
             db_menu.dishes_count = dishes_count
 
             return db_menu
-
-        return None
+        else:
+            raise EntityDoesNotExist
 
     def save(self, menu: schemas.MenuCreate) -> models.Menu:
         db_menu = models.Menu(**menu.model_dump())
@@ -80,10 +81,10 @@ class MenuRepository:
         self.session.refresh(db_menu)
         return db_menu
 
-    def delete(self, id: UUID) -> models.Menu | None:
+    def delete(self, id: UUID) -> models.Menu:
         db_menu = self.__get_by_id(id)
         if not db_menu:
-            return None
+            raise EntityDoesNotExist
         self.session.delete(db_menu)
         self.session.commit()
         return db_menu
@@ -92,10 +93,10 @@ class MenuRepository:
             self,
             id: UUID,
             element: schemas.MenuUpdate
-    ) -> models.Menu | None:
+    ) -> models.Menu:
         db_menu = self.__get_by_id(id)
         if not db_menu:
-            return None
+            raise EntityDoesNotExist
         menu_data = element.model_dump(exclude_unset=True)
         for key, value in menu_data.items():
             setattr(db_menu, key, value)
@@ -104,13 +105,13 @@ class MenuRepository:
         self.session.refresh(db_menu)
         return db_menu
 
-    def __get_by_id(self, id: UUID):
+    def __get_by_id(self, id: UUID) -> models.Menu | None:
         return self.session.query(models.Menu).filter(
             models.Menu.id == id).first()
 
 
 class SubmenuRepository:
-    def __init__(self, session: Session = Depends(get_db)):
+    def __init__(self, session: Session = Depends(get_db)) -> None:
         self.session = session
 
     def get_all(self, menu_id: UUID) -> list[models.Submenu]:
@@ -135,7 +136,7 @@ class SubmenuRepository:
 
         return db_submenus
 
-    def get(self, submenu_id: UUID) -> models.Submenu | None:
+    def get(self, submenu_id: UUID) -> models.Submenu:
         db_result = (
             self.session.query(
                 models.Submenu,
@@ -151,8 +152,8 @@ class SubmenuRepository:
             db_submenu, dishes_count = db_result
             db_submenu.dishes_count = dishes_count
             return db_submenu
-
-        return None
+        else:
+            raise EntityDoesNotExist
 
     def save(
             self,
@@ -174,10 +175,10 @@ class SubmenuRepository:
     def delete(
             self,
             id: UUID
-    ) -> models.Submenu | None:
+    ) -> models.Submenu:
         db_submenu = self.__get_by_id(id)
         if not db_submenu:
-            raise HTTPException(status_code=404, detail='submenu not found')
+            raise EntityDoesNotExist
         self.session.delete(db_submenu)
         self.session.commit()
         return db_submenu
@@ -186,10 +187,10 @@ class SubmenuRepository:
             self,
             id: UUID,
             submenu: schemas.SubmenuUpdate
-    ) -> models.Submenu | None:
+    ) -> models.Submenu:
         db_submenu = self.__get_by_id(id)
         if not db_submenu:
-            raise HTTPException(status_code=404, detail='submenu not found')
+            raise EntityDoesNotExist
         submenu_data = submenu.model_dump(exclude_unset=True)
         for key, value in submenu_data.items():
             setattr(db_submenu, key, value)
@@ -198,7 +199,7 @@ class SubmenuRepository:
         self.session.refresh(db_submenu)
         return db_submenu
 
-    def __get_by_id(self, id: UUID):
+    def __get_by_id(self, id: UUID) -> models.Submenu | None:
         return (
             self.session.query(models.Submenu)
             .filter(models.Submenu.id == id)
@@ -219,8 +220,13 @@ class DishRepository:
 
         return db_dishes
 
-    def get(self, id: UUID) -> models.Dish | None:
-        return self.__get_by_id(id)
+    def get(self, id: UUID) -> models.Dish:
+        db_dish = self.__get_by_id(id)
+
+        if not db_dish:
+            raise EntityDoesNotExist
+
+        return db_dish
 
     def save(
             self,
@@ -241,10 +247,10 @@ class DishRepository:
         self.session.refresh(db_dish)
         return db_dish
 
-    def delete(self, id: UUID) -> models.Dish | None:
+    def delete(self, id: UUID) -> models.Dish:
         db_dish = self.__get_by_id(id)
         if not db_dish:
-            raise HTTPException(status_code=404, detail='dish not found')
+            raise EntityDoesNotExist
         self.session.delete(db_dish)
         self.session.commit()
         return db_dish
@@ -253,10 +259,10 @@ class DishRepository:
             self,
             id: UUID,
             dish: schemas.DishUpdate
-    ) -> models.Dish | None:
+    ) -> models.Dish:
         db_dish = self.__get_by_id(id)
         if not db_dish:
-            raise HTTPException(status_code=404, detail='dish not found')
+            raise EntityDoesNotExist
         dish_data = dish.model_dump(exclude_unset=True)
         for key, value in dish_data.items():
             setattr(db_dish, key, value)
@@ -265,7 +271,7 @@ class DishRepository:
         self.session.refresh(db_dish)
         return db_dish
 
-    def __get_by_id(self, id: UUID):
+    def __get_by_id(self, id: UUID) -> models.Dish | None:
         return (
             self.session.query(models.Dish)
             .filter(models.Dish.id == id)

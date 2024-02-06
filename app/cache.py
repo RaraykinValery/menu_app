@@ -1,28 +1,32 @@
 import pickle
 
 from fastapi import Depends
+from redis import Redis  # type: ignore
 
 from app import models
+from app.custom_exceptions import EntityIsNotInCache
 from app.dependencies import get_cache_conn
 
 
 class MenuCache:
-    def __init__(self, cache=Depends(get_cache_conn)) -> None:
+    def __init__(self, cache: Redis = Depends(get_cache_conn)) -> None:
         self.cache = cache
 
-    def get_list(self, key: str) -> list[models.Menu] | None:
+    def get_list(self, key: str) -> list[models.Menu]:
         value = self.cache.get(key)
-        if value:
-            return pickle.loads(value)
-        else:
-            return None
 
-    def get(self, key: str) -> (models.Menu | None):
+        if not value:
+            raise EntityIsNotInCache
+
+        return pickle.loads(value)
+
+    def get(self, key: str) -> models.Menu:
         value = self.cache.get(key)
-        if value:
-            return pickle.loads(value)
-        else:
-            return None
+
+        if not value:
+            raise EntityIsNotInCache
+
+        return pickle.loads(value)
 
     def save(
         self,
@@ -40,22 +44,24 @@ class MenuCache:
 
 
 class SubmenuCache:
-    def __init__(self, cache=Depends(get_cache_conn)) -> None:
+    def __init__(self, cache: Redis = Depends(get_cache_conn)) -> None:
         self.cache = cache
 
-    def get_list(self, key: str) -> list[models.Submenu] | None:
+    def get_list(self, key: str) -> list[models.Submenu]:
         value = self.cache.get(key)
-        if value:
-            return pickle.loads(value)
-        else:
-            return None
 
-    def get(self, key: str) -> models.Submenu | None:
+        if not value:
+            raise EntityIsNotInCache
+
+        return pickle.loads(value)
+
+    def get(self, key: str) -> models.Submenu:
         value = self.cache.get(key)
-        if value:
-            return pickle.loads(value)
-        else:
-            return None
+
+        if not value:
+            raise EntityIsNotInCache
+
+        return pickle.loads(value)
 
     def save(
         self,
@@ -73,28 +79,30 @@ class SubmenuCache:
 
 
 class DishCache:
-    def __init__(self, cache=Depends(get_cache_conn)) -> None:
+    def __init__(self, cache: Redis = Depends(get_cache_conn)) -> None:
         self.cache = cache
 
     def get_all(
             self,
             key: str,
-    ) -> list[models.Dish] | None:
+    ) -> list[models.Dish]:
         value = self.cache.get(key)
-        if value:
-            return pickle.loads(value)
-        else:
-            return None
+
+        if not value:
+            raise EntityIsNotInCache
+
+        return pickle.loads(value)
 
     def get(
             self,
             key: str,
-    ) -> models.Dish | None:
+    ) -> models.Dish:
         value = self.cache.get(key)
-        if value:
-            return pickle.loads(value)
-        else:
-            return None
+
+        if not value:
+            raise EntityIsNotInCache
+
+        return pickle.loads(value)
 
     def save(
         self,
