@@ -1,12 +1,16 @@
 from uuid import UUID
 
-from app import schemas
+from app import models, schemas, services
 from app.utils import reverse
 from tests.conftest import client
 
 
 class TestDishRouts:
-    def test_read_dishes_success(self, dish, dish_service):
+    def test_read_dishes_success(
+            self,
+            dish: models.Dish,
+            dish_service: services.DishService
+    ) -> None:
         response = client.get(
             reverse(
                 'read_dishes',
@@ -21,7 +25,11 @@ class TestDishRouts:
         db_dishes = dish_service.get_all(dish.submenu_id)
         assert len(data) == len(db_dishes) == 1
 
-    def test_read_dish_success(self, dish, dish_service):
+    def test_read_dish_success(
+            self,
+            dish: models.Dish,
+            dish_service: services.DishService
+    ) -> None:
         response = client.get(
             reverse(
                 'read_dish',
@@ -45,7 +53,11 @@ class TestDishRouts:
         assert dish_data['description'] == db_dish.description
         assert dish_data['price'] == db_dish.price
 
-    def test_create_dish_success(self, submenu, dish_service):
+    def test_create_dish_success(
+            self,
+            submenu: models.Submenu,
+            dish_service: services.DishService
+    ) -> None:
         response = client.post(
             reverse(
                 'create_dish',
@@ -73,7 +85,10 @@ class TestDishRouts:
         assert dish_data['description'] == db_dish.description
         assert dish_data['price'] == db_dish.price
 
-    def test_update_dish_success(self, dish):
+    def test_update_dish_success(
+            self,
+            dish: models.Dish
+    ) -> None:
         response = client.patch(
             reverse(
                 'update_dish',
@@ -106,7 +121,12 @@ class TestDishRouts:
         assert dish_data['title'] == 'Updated Dish 1'
         assert dish_data['description'] == 'Updated Dish 1 description'
 
-    def test_delete_dish_success(self, menu, submenu, dish_service):
+    def test_delete_dish_success(
+            self,
+            menu: models.Menu,
+            submenu: models.Submenu,
+            dish_service: services.DishService
+    ) -> None:
         dish_data = {
             'title': 'Dish 1',
             'description': 'Dish 1 description',

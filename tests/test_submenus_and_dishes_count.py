@@ -11,7 +11,7 @@ class TestSubmenusAndDishesCounts:
     menu_id = ''
     submenu_id = ''
 
-    def test_create_menu_success(self, class_session: Session):
+    def test_create_menu_success(self, class_session: Session) -> None:
         response = client.post(
             reverse('create_menu'),
             json={
@@ -25,7 +25,7 @@ class TestSubmenusAndDishesCounts:
 
         TestSubmenusAndDishesCounts.menu_id = menu_data['id']
 
-    def test_create_submenu_success(self, class_session: Session):
+    def test_create_submenu_success(self, class_session: Session) -> None:
         response = client.post(
             reverse(
                 'create_submenu',
@@ -42,7 +42,7 @@ class TestSubmenusAndDishesCounts:
 
         TestSubmenusAndDishesCounts.submenu_id = submenu_data['id']
 
-    def test_create_dish_1_success(self, class_session: Session):
+    def test_create_dish_1_success(self, class_session: Session) -> None:
         response = client.post(
             reverse(
                 'create_dish',
@@ -59,7 +59,7 @@ class TestSubmenusAndDishesCounts:
         dish_data = response.json()
         assert 'id' in dish_data
 
-    def test_create_dish_2_success(self, class_session: Session):
+    def test_create_dish_2_success(self, class_session: Session) -> None:
         response = client.post(
             reverse(
                 'create_dish',
@@ -76,7 +76,7 @@ class TestSubmenusAndDishesCounts:
         dish_data = response.json()
         assert 'id' in dish_data
 
-    def test_read_menu_success(self, class_session: Session):
+    def test_read_menu_success(self, class_session: Session) -> None:
         response = client.get(
             reverse('read_menu', menu_id=TestSubmenusAndDishesCounts.menu_id)
         )
@@ -89,7 +89,7 @@ class TestSubmenusAndDishesCounts:
         assert menu_data['submenus_count'] == menu_with_counts.submenus_count
         assert menu_data['dishes_count'] == menu_with_counts.dishes_count
 
-    def test_read_submenu(self, class_session: Session):
+    def test_read_submenu(self, class_session: Session) -> None:
         response = client.get(
             reverse(
                 'read_submenu',
@@ -102,7 +102,7 @@ class TestSubmenusAndDishesCounts:
         assert submenu_data['id'] == TestSubmenusAndDishesCounts.submenu_id
         assert submenu_data['dishes_count'] == 2
 
-    def test_delete_submenu_success(self, class_session: Session):
+    def test_delete_submenu_success(self, class_session: Session) -> None:
         response = client.delete(
             reverse(
                 'delete_submenu',
@@ -113,14 +113,14 @@ class TestSubmenusAndDishesCounts:
         )
         assert response.status_code == 200
 
-    def test_read_submenus_success(self, class_session: Session):
+    def test_read_submenus_success(self, class_session: Session) -> None:
         response = client.get(
             reverse('read_submenus', menu_id=TestSubmenusAndDishesCounts.menu_id)
         )
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_read_dishes(self, class_session: Session):
+    def test_read_dishes(self, class_session: Session) -> None:
         response = client.get(
             reverse(
                 'read_dishes',
@@ -134,7 +134,7 @@ class TestSubmenusAndDishesCounts:
     def test_read_menu_with_no_submenus_and_dishes_success(
             self,
             class_session: Session
-    ):
+    ) -> None:
         response = client.get(
             reverse(
                 'read_menu',
@@ -147,13 +147,13 @@ class TestSubmenusAndDishesCounts:
         assert menu_read_data['submenus_count'] == 0
         assert menu_read_data['dishes_count'] == 0
 
-    def test_delete_menu_success(self, class_session: Session):
+    def test_delete_menu_success(self, class_session: Session) -> None:
         response = client.delete(
             reverse('delete_menu', menu_id=TestSubmenusAndDishesCounts.menu_id)
         )
         assert response.status_code == 200
 
-    def test_read_menus(self, class_session: Session):
+    def test_read_menus(self, class_session: Session) -> None:
         response = client.get(reverse('read_menus'))
         assert response.status_code == 200
         assert response.json() == []

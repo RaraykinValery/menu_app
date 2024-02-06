@@ -1,12 +1,16 @@
 from uuid import UUID
 
-from app import schemas
+from app import models, schemas, services
 from app.utils import reverse
 from tests.conftest import client
 
 
 class TestSubmenuRouts:
-    def test_read_submenus_success(self, submenu, submenu_service):
+    def test_read_submenus_success(
+            self,
+            submenu: models.Submenu,
+            submenu_service: services.SubmenuService
+    ) -> None:
         response = client.get(
             reverse('read_submenus', menu_id=submenu.menu.id)
         )
@@ -17,7 +21,11 @@ class TestSubmenuRouts:
         submenus = submenu_service.get_all(submenu.menu.id)
         assert len(data) == len(submenus) == 1
 
-    def test_read_submenu_success(self, submenu, submenu_service):
+    def test_read_submenu_success(
+            self,
+            submenu: models.Submenu,
+            submenu_service: services.SubmenuService
+    ) -> None:
         response = client.get(
             reverse(
                 'read_submenu',
@@ -38,7 +46,11 @@ class TestSubmenuRouts:
         assert submenu_data['title'] == submenu.title
         assert submenu_data['description'] == submenu.description
 
-    def test_create_submenu_success(self, menu, submenu_service):
+    def test_create_submenu_success(
+            self,
+            menu: models.Menu,
+            submenu_service: services.SubmenuService
+    ) -> None:
         response = client.post(
             reverse('create_submenu', menu_id=menu.id),
             json={
@@ -59,7 +71,10 @@ class TestSubmenuRouts:
         assert submenu_data['title'] == submenu.title
         assert submenu_data['description'] == submenu.description
 
-    def test_update_submenu_success(self, submenu):
+    def test_update_submenu_success(
+            self,
+            submenu: models.Submenu
+    ) -> None:
         response = client.patch(
             reverse(
                 'update_submenu',
@@ -90,7 +105,11 @@ class TestSubmenuRouts:
         assert submenu_data['title'] == 'Updated Submenu 1'
         assert submenu_data['description'] == 'Updated Submenu 1 description'
 
-    def test_delete_submenu_success(self, menu, submenu_service):
+    def test_delete_submenu_success(
+            self,
+            menu: models.Menu,
+            submenu_service: services.SubmenuService
+    ) -> None:
         submenu_data = {
             'title': 'Submenu 1',
             'description': 'Submenu 1 description'

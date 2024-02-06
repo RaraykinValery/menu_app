@@ -1,12 +1,15 @@
 from uuid import UUID
 
-from app import schemas
+from app import models, schemas, services
 from app.utils import reverse
 from tests.conftest import client
 
 
 class TestMenuRouts:
-    def test_read_menus_success(self, menu, menu_service):
+    def test_read_menus_success(
+            self,
+            menu: models.Menu,
+            menu_service: services.MenuService) -> None:
         response = client.get(
             reverse('read_menus')
         )
@@ -17,7 +20,11 @@ class TestMenuRouts:
         menus = menu_service.get_all()
         assert len(data) == len(menus) == 1
 
-    def test_read_menu_success(self, menu, menu_service):
+    def test_read_menu_success(
+            self,
+            menu: models.Menu,
+            menu_service: services.MenuService
+    ) -> None:
         response = client.get(
             reverse('read_menu', menu_id=menu.id)
         )
@@ -31,7 +38,10 @@ class TestMenuRouts:
         assert menu_data['title'] == menu.title
         assert menu_data['description'] == menu.description
 
-    def test_create_menu_success(self, menu_service):
+    def test_create_menu_success(
+            self,
+            menu_service: services.MenuService
+    ) -> None:
         response = client.post(
             reverse('create_menu'),
             json={
@@ -49,7 +59,7 @@ class TestMenuRouts:
         assert menu_data['title'] == menu.title == 'Menu 1'
         assert menu_data['description'] == menu.description == 'Menu 1 description'
 
-    def test_update_menu_success(self, menu):
+    def test_update_menu_success(self, menu: models.Menu) -> None:
         response = client.patch(
             reverse('update_menu', menu_id=menu.id),
             json={
@@ -73,7 +83,10 @@ class TestMenuRouts:
         assert menu_data['title'] == 'Updated Menu 1'
         assert menu_data['description'] == 'Updated Menu 1 description'
 
-    def test_delete_menu_success(self, menu_service):
+    def test_delete_menu_success(
+            self,
+            menu_service: services.MenuService
+    ) -> None:
         menu_data = {
             'title': 'Menu 1',
             'description': 'Menu 1 description'
